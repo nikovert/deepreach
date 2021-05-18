@@ -51,7 +51,10 @@ num_slices = len(poss['1E'])
 
 # Load the model
 model = modules.SingleBVPNet(in_features=10, out_features=1, type='sine', mode='mlp', final_layer_factor=1., hidden_features=512, num_hidden_layers=3)
-model.cuda()
+if torch.cuda.is_available():  
+  model.cuda()
+else:
+  model.cpu()
 checkpoint = torch.load(ckpt_path)
 try:
   model_weights = checkpoint['model']
@@ -63,7 +66,10 @@ model.eval()
 # Load the 2 vehicle model
 model_1P = modules.SingleBVPNet(in_features=7, out_features=1, type='sine', mode='mlp',
                                 final_layer_factor=1., hidden_features=512, num_hidden_layers=3)
-model_1P.cuda()
+if torch.cuda.is_available():  
+  model_1P.cuda()
+else:
+  model_1P.cpu() 
 checkpoint = torch.load(ckpt_path_1P)
 try:
   model_weights = checkpoint['model']
@@ -117,8 +123,11 @@ def val_fn_BRS_posspace(model, model_1P):
 
       # Theta coordinates of the evaders for the pairwise game
       pairwise_coords[evader_key] = torch.cat((pairwise_coords[evader_key], tcoords, coords_ego_theta), dim=1)
-
-    model_in = {'coords': coords[:, None, :].cuda()}
+    
+    if torch.cuda.is_available():  
+      model_in = {'coords': coords[:, None, :].cuda()}
+    else:
+      model_in = {'coords': coords[:, None, :].cpu()}
     model_out = model(model_in)
 
     # Detatch model ouput and reshape
