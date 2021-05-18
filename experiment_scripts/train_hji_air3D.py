@@ -115,7 +115,10 @@ def val_fn(model, ckpt_dir, epoch):
       theta_coords = torch.ones(mgrid_coords.shape[0], 1) * thetas[j]
       theta_coords = theta_coords / (opt.angle_alpha * math.pi)
       coords = torch.cat((time_coords, mgrid_coords, theta_coords), dim=1) 
-      model_in = {'coords': coords.cuda()}
+      if torch.cuda.is_available():
+        model_in = {'coords': coords.cuda()}
+      else:
+        model_in = {'coords': coords.cpu()}
       model_out = model(model_in)['model_out']
 
       # Detatch model ouput and reshape
